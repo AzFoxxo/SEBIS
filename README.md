@@ -7,7 +7,7 @@ The motivation behind this project was take the failures of a previous project `
 The final aim of this project is not to produce a 100% accurate recreation of a fantasy virtual machine but to learn how to emulate a simplified system and work around its limitations.
 
 ## Technical specifications
-For the technical specifications of the fantasy machine and instruction set, see [specifications](specifications).
+For the technical specifications of the fantasy machine and instruction set, see [specifications](docs/specifications).
 
 ## Projects
 - `SEBIS.Assembler` - A simple assembler which takes SEBIS Assembly and produces a rom file.
