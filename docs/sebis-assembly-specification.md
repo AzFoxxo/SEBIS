@@ -1,6 +1,6 @@
 # SEBIS Assembly Specification
 
-This document describes Standard SEBIS Assembly version `1.0.0`. It does not include any non-standard additions or implementation specific details. See also [Instruction Set](instruction-set.md)
+This document describes Standard SEBIS Assembly version `1.0.0`. It does not include any non-standard additions or implementation specific details. See also [Instruction Set](instruction-set.md). The file extension for SEBIS Assembly is .asebis (Assembly SEBIS).
 
 ## Comments
 SEBIS assembly has support comments at the start of a line using the `;` (semi-colon) to denote one or post code comments e.g. `NOP ; comment`.
