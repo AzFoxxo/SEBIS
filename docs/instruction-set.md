@@ -157,7 +157,7 @@ Note: Some more complex instructions which both load data and operate on it will
     <!-- AND -->
     <tr>
         <td>AND</td>
-        <td>000 0000-0111</td>
+        <td>000 0000-0110</td>
         <td>L</td>
         <td>NULL</td>
         <td>NULL</td>
@@ -167,7 +167,7 @@ Note: Some more complex instructions which both load data and operate on it will
     <!-- XOR -->
     <tr>
         <td>XOR</td>
-        <td>000 0000-1000</td>
+        <td>000 0000-0111</td>
         <td>L</td>
         <td>NULL</td>
         <td>NULL</td>
@@ -177,7 +177,7 @@ Note: Some more complex instructions which both load data and operate on it will
     <!-- OR -->
     <tr>
         <td>OR</td>
-        <td>000 0000-1001</td>
+        <td>000 0000-1000</td>
         <td>L</td>
         <td>NULL</td>
         <td>NULL</td>
@@ -187,7 +187,7 @@ Note: Some more complex instructions which both load data and operate on it will
     <!-- HLT -->
     <tr>
         <td>HLT</td>
-        <td>000 0000-1010</td>
+        <td>000 0000-1001</td>
         <td>L</td>
         <td>NULL</td>
         <td>NULL</td>
@@ -197,7 +197,7 @@ Note: Some more complex instructions which both load data and operate on it will
     <!-- PANIC -->
     <tr>
         <td>PANIC</td>
-        <td>000 0000-1011</td>
+        <td>000 0000-1010</td>
         <td>L</td>
         <td>NULL</td>
         <td>NULL</td>
@@ -207,7 +207,7 @@ Note: Some more complex instructions which both load data and operate on it will
     <!-- Memory addressing modes - MBNKROM -->
     <tr>
         <td>MBNKROM</td>
-        <td>000 0000-1100</td>
+        <td>000 0000-1011</td>
         <td>L</td>
         <td>NULL</td>
         <td>NULL</td>
@@ -217,7 +217,7 @@ Note: Some more complex instructions which both load data and operate on it will
     <!-- Memory addressing modes - MBNKRAM -->
     <tr>
         <td>MBNKRAM</td>
-        <td>000 0000-1101</td>
+        <td>000 0000-1100</td>
         <td>L</td>
         <td>NULL</td>
         <td>NULL</td>
@@ -227,7 +227,7 @@ Note: Some more complex instructions which both load data and operate on it will
     <!-- ZERO -->
     <tr>
         <td>ZERO</td>
-        <td>000 0000-1111</td>
+        <td>000 0000-1101</td>
         <td>L</td>
         <td>NULL</td>
         <td>NULL</td>
@@ -237,7 +237,7 @@ Note: Some more complex instructions which both load data and operate on it will
     <!-- LDL -->
     <tr>
         <td>LDL</td>
-        <td>000 0001-0000</td>
+        <td>000 0000-1110</td>
         <td>S</td>
         <td>MEMORY, CONSTANT</td>
         <td>NULL</td>
@@ -247,7 +247,7 @@ Note: Some more complex instructions which both load data and operate on it will
     <!-- LDH -->
     <tr>
         <td>LDH</td>
-        <td>000 0001-0001</td>
+        <td>000 0000-1111</td>
         <td>S</td>
         <td>MEMORY, CONSTANT</td>
         <td>NULL</td>
@@ -257,7 +257,7 @@ Note: Some more complex instructions which both load data and operate on it will
     <!-- CLD -->
     <tr>
         <td>CLD</td>
-        <td>000 0001-0010</td>
+        <td>000 0001-0000</td>
         <td>L</td>
         <td>NULL</td>
         <td>NULL</td>
