@@ -5,11 +5,12 @@ SEBIS is a lightweight 8 bit instruction
 The CPU is uses 16 bit memory addressing with a default instruction size of 8 bits operating at exactly 5MHz (single threaded only).
 
 ### Memory layout
-The machine contains one single 64K memory bank which is used for both ROM and RAM, is is entirely read and writeable and contains memory mapped devices.
+Both the ROM and RAM are 64K in size, the ROM cannot be written to but can be read from (slow) but the RAM can be both read and written to (fast).
 
-The first 63K is reserved for general use, this can be RAM or ROM and has no limitations on what it can be used for.
-
-The last 1K of memory is reserved for memory mapped devices only, it is responsible for IO such as keyboard, console output, etc.
+#### Breakdown of RAM
+- 0-16K - this is automatically loaded ROM, it takes the start of the ROM and 16K (or if ROM is shorter, pads the space with zeros). (This can be changed to another 16K from anywhere else in the ROM, it updates an internal pointer saying X-Y ROM is loaded into RAM so it should seek it from RAM and apply the offset instead of loading directly from slow ROM)
+- 16-63K - This is general purpose memory which is freely addressable for general use.
+- 63K-64K - This is reserved for memory mapped devices.
 
 #### Memory mapped devices and their addresses
 
@@ -21,35 +22,50 @@ The SEBIS spec outlines a number of registers as defined below:
         <th>A</th>
         <th>B</th>
         <th>C</th>
-        <th>PC<th>
+        <th>PC</th>
+        <th>L (L&H)</th>
+        <th>M</th>
+        <th>LRAP</th>
     </tr>
     <tr>
         <th>Size (bytes)</th>
         <td>1</td>
         <td>1</td>
         <td>1</td>
-        <td>2<td>
+        <td>2</td>
+        <td>2</td>
+        <td>1</td>
+        <td>2</td>
     </tr>
     <tr>
         <th>Read</th>
         <td>True</td>
         <td>True</td>
         <td>True</td>
-        <td>False<td>
+        <td>False</td>
+        <td>False</td>
+        <td>False</td>
+        <td>False</td>
     </tr>
     <tr>
-        <th>True</th>
+        <th>Write</th>
+        <td>True</td>
         <td>True</td>
         <td>False</td>
         <td>False</td>
-        <td>False<td>
+        <td>True</td>
+        <td>True</td>
+        <td>False</td>
     </tr>
     <tr>
         <th>Use</th>
         <td>General purpose register</td>
         <td>General purpose register</td>
         <td>Results register</td>
-        <td>Program pointer (in memory)<td>
+        <td>Program pointer (in memory)</td>
+        <td>Long general purpose register</td>
+        <td>Memory bank pointer (0 - ROM, 1 - RAM)</td>
+        <td>Loaded ROM Address Pointer - gives the offset of what ROM is loaded into reserved RAM for ROM (from offset + 16K)</td>
     </tr>
 </table>
 
@@ -63,7 +79,7 @@ The instruction set is highly simplified however due to the limitations of eight
 #### Instruction space denotions
 `S` - Short instruction space denotion (8 bit)
 `L` - Long Instruction space denotion (16 bit)
-`LL` - Long long Instruction space denotion (24 bit)
+`X` - E**X**tra long Instruction space denotion (24 bit)
 
 #### Read modes
 - `0` - `NULL` - Instruction requires no read

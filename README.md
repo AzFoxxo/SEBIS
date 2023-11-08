@@ -9,6 +9,8 @@ The final aim of this project is not to produce a 100% accurate recreation of a 
 ## Technical specifications
 For the technical specifications of the fantasy machine and instruction set, see [specifications](docs/specification.md).
 
+For documentation about SEBIS assembly, see [SEBIS assembly specifications](docs/sebis-assembly-specification.md)
+
 ## Projects
 - `SEBIS.Assembler` - A simple assembler which takes SEBIS Assembly and produces a rom file.
 - `SEBIS.Shared` - Contains shared code between the assembler and virtual machine
