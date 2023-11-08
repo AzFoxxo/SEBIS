@@ -29,13 +29,15 @@ namespace SEBIS.Assembler
         public bool flag { get; private set; }
         public bool lng { get; private set; }
         public string lngReg { get; private set; }
+        public OpcodeByteLength opLength { get; private set; }
 
-        public Instruction(Opcodes opcode, bool flag, bool lng, string lngReg)
+        public Instruction(Opcodes opcode, bool flag, bool lng, string lngReg, OpcodeByteLength opLength)
         {
             this.opcode = opcode;
             this.flag = flag;
             this.lng = lng;
             this.lngReg = lngReg;
+            this.opLength = opLength;
         }
 
         // Implicitly convert Instruction to List<Instruction> when needed
@@ -45,10 +47,12 @@ namespace SEBIS.Assembler
         }
 
         // Implicit to string conversion
-        // public static implicit operator string(Instruction instruction)
-        // {
-        //     var op = OpcodesUtils.ToBinaryString(instruction.opcode);
-        //     return $"{op} {instruction.opcode.ToString()} {instruction.flag} {instruction.lng} {instruction.lngReg} ";
-        // }
+        public static implicit operator string(Instruction instruction)
+        {
+            var variableOpcode = new VariableLengthOpcode((uint)instruction.opcode, instruction.opLength);
+            
+            var op = OpcodesUtils.ToBinaryString(variableOpcode);
+            return $"{op} {instruction.opcode.ToString()} {instruction.flag} {instruction.lng} {instruction.lngReg} ";
+        }
     }
 }

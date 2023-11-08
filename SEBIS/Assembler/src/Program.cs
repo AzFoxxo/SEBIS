@@ -59,7 +59,7 @@ namespace SEBIS.Assembler
             // Print each line
             foreach (var line in lines)
             {
-                // Change colour colour to blue for :
+                // Change colour to blue for :
                 if (line.Trim().StartsWith(":"))
                 {
                     Console.ForegroundColor = ConsoleColor.Blue;
@@ -234,7 +234,7 @@ namespace SEBIS.Assembler
         {
             // Single opcode no operand instructions
             // Disregard any misplaced tokens after no operand instructions
-            if (tokens[0].ToUpper() == "ABC") return new Instruction(Opcodes.ABC, false, false, "");
+            if (tokens[0].ToUpper() == "ABC") return new Instruction(Opcodes.ABC, false, false, "", OpcodeByteLength.Short);
             #if AAAAAAAAAAAAAA
             else if (tokens[0].ToUpper() == "HLT") return new Instruction(Opcodes.HLT, false, false, "");
             else if (tokens[0].ToUpper() == "NOP") return new Instruction(Opcodes.NOP, false, false, "");
@@ -289,7 +289,7 @@ namespace SEBIS.Assembler
                         Console.WriteLine("Error: Invalid number of operands for load instructions");
                         Environment.Exit((int)ErrorCodes.InvalidNumberOfArguments);
                     }
-                    return new Instruction(op, false, true, tokens[1]);
+                    return new Instruction(op, false, true, tokens[1], OpcodeByteLength.Short);
             }
 
             // Store register instructions
@@ -308,13 +308,13 @@ namespace SEBIS.Assembler
                         Console.WriteLine("Error: Invalid number of operands for store instructions");
                         Environment.Exit((int)ErrorCodes.InvalidNumberOfArguments);
                     }
-                    return new Instruction(op, false, true, tokens[1]);
+                    return new Instruction(op, false, true, tokens[1], OpcodeByteLength.Short);
             }
 
             
             // Error
             Console.WriteLine("Error: Invalid opcode found");
-            return new Instruction(Opcodes.NOP, false, false, "");
+            return new Instruction(Opcodes.NOP, false, false, "", OpcodeByteLength.Short);
         }
 
         /// <summary>
