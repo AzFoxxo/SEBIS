@@ -67,7 +67,7 @@ Note: Some more complex instructions which both load data and operate on it will
     <!-- STC -->
     <tr>
         <td>STC</td>
-        <td>011</td>
+        <td>101</td>
         <td>S</td>
         <td>MEMORY</td>
         <td>NULL</td>
@@ -77,7 +77,7 @@ Note: Some more complex instructions which both load data and operate on it will
     <!-- SYSCALL -->
     <tr>
         <td>SYSCALL</td>
-        <td>111</td>
+        <td>110</td>
         <td>S</td>
         <td>NULL</td>
         <td>NULL</td>
@@ -87,12 +87,22 @@ Note: Some more complex instructions which both load data and operate on it will
     <!-- ABC -->
     <tr>
         <td>ABC</td>
-        <td>000 0000-0000</td>
-        <td>L</td>
+        <td>111</td>
+        <td>S</td>
         <td>NULL</td>
         <td>Perform subtraction (take B from A)</td>
         <td>REGISTER</td>
         <td>Add A to B and store results in C</td>
+    </tr>
+    <!-- MUL -->
+    <tr>
+        <td>MUL</td>
+        <td>000 0000-0000</td>
+        <td>L</td>
+        <td>NULL</td>
+        <td>Perform division (A divided by B)</td>
+        <td>REGISTER</td>
+        <td>Multiply A and B and store it in C</td>
     </tr>
     <!-- JMP -->
     <tr>
