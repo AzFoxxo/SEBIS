@@ -117,7 +117,7 @@ namespace SEBIS.Assembler
             // Instructions are 1 byte with an optional extra byte for operands
             foreach (var instruction in instructions)
             {
-                romSize += (byte)(instruction.lng ? 2 : 1);
+                romSize += (byte)(instruction.IncludeLongRegisterInROM ? 2 : 1);
             }
 
             Console.WriteLine($"ROM instruction size: {romSize} bytes out of {byte.MaxValue} bytes supported");
@@ -139,40 +139,40 @@ namespace SEBIS.Assembler
                 // Write the instructions
                 foreach (var instruction in instructions)
                 {
-                    var flag = instruction.flag ? 0b1 : 0b0; // First bit of byte
-                    var lng = instruction.lng ? 0b1 : 0b0; // Second bit of byte
+                    var flag = instruction.flagBitValue ? 0b1 : 0b0; // First bit of byte
+                    var IncludeLongRegisterInROM = instruction.IncludeLongRegisterInROM ? 0b1 : 0b0; // Second bit of byte
                     var op = instruction.opcode.DecimalToShortOpcode(); // Last six bits of byte
 
                     // Combine flag, lng, and op into a single byte
-                    byte machineCode = (byte)((flag << 7) | (lng << 6) | op);
+                    byte machineCode = (byte)((flag << 7) | (IncludeLongRegisterInROM << 6) | op);
 
                     // Write byte
                     writer.Write(machineCode);
 
                     // Long register
-                    if (instruction.lng)
+                    if (instruction.IncludeLongRegisterInROM)
                     {
                         // Remove $ - address from operand
-                        var operand = instruction.lngReg.Replace("$", "");
+                        var operand = instruction.longRegisterValue.Replace("$", "");
 
                         // Convert hex to byte
-                        if (Byte.TryParse(operand, System.Globalization.NumberStyles.HexNumber, null, out byte value) && instruction.lngReg.Contains('$'))
+                        if (Byte.TryParse(operand, System.Globalization.NumberStyles.HexNumber, null, out byte value) && instruction.longRegisterValue.Contains('$'))
                         {
                             Console.ForegroundColor = ConsoleColor.Blue;
-                            Console.WriteLine($"`{instruction.lngReg}` to `{operand}` to `{Convert.ToByte(value)}`");
+                            Console.WriteLine($"`{instruction.longRegisterValue}` to `{operand}` to `{Convert.ToByte(value)}`");
                             Console.ResetColor();
                         }
                         // Convert decimal to byte
                         else if (Byte.TryParse(operand, out value))
                         {
                             Console.ForegroundColor = ConsoleColor.Blue;
-                            Console.WriteLine($"`{instruction.lngReg}` to `{operand}` to `{Convert.ToByte(value)}`");
+                            Console.WriteLine($"`{instruction.longRegisterValue}` to `{operand}` to `{Convert.ToByte(value)}`");
                             Console.ResetColor();
                         }
                         else
                         {
                             // Log error
-                            Console.WriteLine($"Error: Invalid long register {instruction.lngReg}");
+                            Console.WriteLine($"Error: Invalid long register {instruction.longRegisterValue}");
                             Environment.Exit((int)ErrorCodes.InvalidLongRegister);
                             return;
                         }
@@ -234,14 +234,21 @@ namespace SEBIS.Assembler
         {
             // Single opcode no operand instructions
             // Disregard any misplaced tokens after no operand instructions
-            if (tokens[0].ToUpper() == "ABC") return new Instruction(Opcodes.ABC, false, false, "", OpcodeByteLength.Short);
-            #if AAAAAAAAAAAAAA
-            else if (tokens[0].ToUpper() == "HLT") return new Instruction(Opcodes.HLT, false, false, "");
-            else if (tokens[0].ToUpper() == "NOP") return new Instruction(Opcodes.NOP, false, false, "");
-            else if (tokens[0].ToUpper() == "SUB") return new Instruction(Opcodes.SUB, false, false, "");
-            else if (tokens[0].ToUpper() == "XOR") return new Instruction(Opcodes.XOR, false, false, "");
-            else if (tokens[0].ToUpper() == "OR") return new Instruction(Opcodes.OR, false, false, "");
-            else if (tokens[0].ToUpper() == "AND") return new Instruction(Opcodes.AND, false, false, "");
+            if (tokens[0].ToUpper() == "ABC") return new Instruction(Opcodes.ABC, false, false, "", OpcodeByteLength.Short, AddressMode.REGISTER);
+            if (tokens[0].ToUpper() == "SUB") return new Instruction(Opcodes.SUB, true, false, "", OpcodeByteLength.Short, AddressMode.REGISTER); // SUB flag
+            else if (tokens[0].ToUpper() == "HLT") return new Instruction(Opcodes.HLT, false, false, "", OpcodeByteLength.Long, AddressMode.NULL);
+            else if (tokens[0].ToUpper() == "NOP") return new Instruction(Opcodes.NOP, false, false, "", OpcodeByteLength.Short, AddressMode.NULL);
+            else if (tokens[0].ToUpper() == "MUL") return new Instruction(Opcodes.MUL, false, false, "", OpcodeByteLength.Long, AddressMode.REGISTER);
+            else if (tokens[0].ToUpper() == "DIV") return new Instruction(Opcodes.MUL, true, false, "", OpcodeByteLength.Long, AddressMode.REGISTER); // MUL flag
+            else if (tokens[0].ToUpper() == "XOR") return new Instruction(Opcodes.XOR, false, false, "", OpcodeByteLength.Long, AddressMode.REGISTER);
+            else if (tokens[0].ToUpper() == "OR") return new Instruction(Opcodes.OR, false, false, "", OpcodeByteLength.Long, AddressMode.REGISTER);
+            else if (tokens[0].ToUpper() == "AND") return new Instruction(Opcodes.AND, false, false, "", OpcodeByteLength.Long, AddressMode.REGISTER);
+            else if (tokens[0].ToUpper() == "SYSCALL") return new Instruction(Opcodes.SYSCALL, false, false, "", OpcodeByteLength.Short, AddressMode.REGISTER);
+            else if (tokens[0].ToUpper() == "PANIC") return new Instruction(Opcodes.PANIC, false, false, "", OpcodeByteLength.Long, AddressMode.NULL);
+            else if (tokens[0].ToUpper() == "MBNKROM") return new Instruction(Opcodes.MBNKROM, false, false, "", OpcodeByteLength.Long, AddressMode.NULL);
+            else if (tokens[0].ToUpper() == "MBNKRAM") return new Instruction(Opcodes.MBNKRAM, false, false, "", OpcodeByteLength.Long, AddressMode.NULL);
+            else if (tokens[0].ToUpper() == "ZERO") return new Instruction(Opcodes.ZERO, false, false, "", OpcodeByteLength.Long, AddressMode.NULL);
+            else if (tokens[0].ToUpper() == "CLD") return new Instruction(Opcodes.CLD, false, false, "", OpcodeByteLength.Long, AddressMode.REGISTER);
 
             // Jump instructions
             switch (tokens[0].ToUpper())
@@ -254,7 +261,7 @@ namespace SEBIS.Assembler
                     else if (tokens[0].ToUpper() == "JNZ") op = Opcodes.JNZ;
                     else if (tokens[0].ToUpper() == "JZ") op = Opcodes.JZ;
                     else break;
-                    if (tokens.Length == 2) return new Instruction(op, false, true, tokens[1]);
+                    if (tokens.Length == 2) return new Instruction(op, false, true, tokens[1], OpcodeByteLength.Long, AddressMode.MEMORY);
                     else if (tokens.Length < 2)
                     { // Allow too many
                         Console.WriteLine("Error: Invalid number of operands for jump instructions");
@@ -263,6 +270,7 @@ namespace SEBIS.Assembler
                     break;
             }
 
+            
             // Comparison instructions
             switch (tokens[0].ToUpper())
             {
@@ -272,9 +280,9 @@ namespace SEBIS.Assembler
                     if (tokens[0].ToUpper() == "CPL") op = Opcodes.CPL;
                     else if (tokens[0].ToUpper() == "CMP") op = Opcodes.CMP;
                     else break;
-                    return new Instruction(op, tokens.Length == 2 ? (tokens[1] != "0" ? true : false) : false, false, "");
+                    return new Instruction(op, tokens.Length == 2 ? (tokens[1] != "0" ? true : false) : false, false, "", OpcodeByteLength.Long, AddressMode.REGISTER);
             }
-#endif
+
             // Load register instructions
             switch (tokens[0].ToUpper())
             {
@@ -283,13 +291,24 @@ namespace SEBIS.Assembler
                     Opcodes op;
                     if (tokens[0].ToUpper() == "LDA") op = Opcodes.LDA;
                     else if (tokens[0].ToUpper() == "LDB") op = Opcodes.LDB;
+                    else if (tokens[0].ToUpper() == "LDL") op = Opcodes.LDL;
+                    else if (tokens[0].ToUpper() == "LDH") op = Opcodes.LDH;
                     else break;
                     if (tokens.Length < 2)
                     { // Allow too many
                         Console.WriteLine("Error: Invalid number of operands for load instructions");
                         Environment.Exit((int)ErrorCodes.InvalidNumberOfArguments);
                     }
-                    return new Instruction(op, false, true, tokens[1], OpcodeByteLength.Short);
+
+                    // This could be AddressMode.CONSTANT or AddressMode.MEMORY
+
+                    // Check if the operand is an address
+                    if (tokens[1].StartsWith("$"))
+                    {
+                        return new Instruction(op, false, true, tokens[1], OpcodeByteLength.Short, AddressMode.MEMORY);
+                    }
+
+                    return new Instruction(op, false, true, tokens[1], OpcodeByteLength.Short, AddressMode.CONSTANT);
             }
 
             // Store register instructions
@@ -308,13 +327,13 @@ namespace SEBIS.Assembler
                         Console.WriteLine("Error: Invalid number of operands for store instructions");
                         Environment.Exit((int)ErrorCodes.InvalidNumberOfArguments);
                     }
-                    return new Instruction(op, false, true, tokens[1], OpcodeByteLength.Short);
+                    return new Instruction(op, false, true, tokens[1], OpcodeByteLength.Short, AddressMode.MEMORY);
             }
 
             
             // Error
             Console.WriteLine("Error: Invalid opcode found");
-            return new Instruction(Opcodes.NOP, false, false, "", OpcodeByteLength.Short);
+            return new Instruction(Opcodes.NOP, false, false, "", OpcodeByteLength.Short, AddressMode.NULL);
         }
 
         /// <summary>

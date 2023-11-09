@@ -25,19 +25,21 @@ namespace SEBIS.Assembler
 {
     struct Instruction
     {
-        public Opcodes opcode { get; private set; }
-        public bool flag { get; private set; }
-        public bool lng { get; private set; }
-        public string lngReg { get; private set; }
-        public OpcodeByteLength opLength { get; private set; }
+        public OpcodeByteLength opcodeLength { get; private set; }  // Opcode size
+        public bool flagBitValue { get; private set; }              // Flag value
+        public AddressMode addressMode { get; private set; }        // Addressing mode
+        public Opcodes opcode { get; private set; }                 // Opcode (enum)
+        public bool IncludeLongRegisterInROM { get; private set; }
+        public string longRegisterValue { get; private set; }
 
-        public Instruction(Opcodes opcode, bool flag, bool lng, string lngReg, OpcodeByteLength opLength)
+        public Instruction(Opcodes opcode, bool flagBitValue, bool IncludeLongRegisterInROM, string longRegisterValue, OpcodeByteLength opcodeLength, AddressMode addressMode)
         {
             this.opcode = opcode;
-            this.flag = flag;
-            this.lng = lng;
-            this.lngReg = lngReg;
-            this.opLength = opLength;
+            this.flagBitValue = flagBitValue;
+            this.IncludeLongRegisterInROM = IncludeLongRegisterInROM;
+            this.longRegisterValue = longRegisterValue;
+            this.opcodeLength = opcodeLength;
+            this.addressMode = addressMode;
         }
 
         // Implicitly convert Instruction to List<Instruction> when needed
@@ -49,10 +51,10 @@ namespace SEBIS.Assembler
         // Implicit to string conversion
         public static implicit operator string(Instruction instruction)
         {
-            var variableOpcode = new VariableLengthOpcode((uint)instruction.opcode, instruction.opLength);
+            var variableOpcode = new VariableLengthOpcode((uint)instruction.opcode, instruction.opcodeLength);
             
             var op = OpcodesUtils.ToBinaryString(variableOpcode);
-            return $"{op} {instruction.opcode.ToString()} {instruction.flag} {instruction.lng} {instruction.lngReg} ";
+            return $"{op} {instruction.opcode.ToString()} {instruction.flagBitValue} {instruction.IncludeLongRegisterInROM} {instruction.longRegisterValue} ";
         }
     }
 }
