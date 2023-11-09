@@ -4,6 +4,8 @@ This document is the authoritative list of instructions supported in SEBIS.
 
 Note: Some more complex instructions which both load data and operate on it will take multiple read modes thus must call sub-instructions taking up multiple clock cycles.
 
+Note: ABC has a flip which allows subtract to fit within the short instruction space. MUL contains a flip which allows division to allow consistency despite being a long instruction. Assembly should not include ABC or MUL with flag instead it should use SUB and DIV respectively.
+
 <table>
     <tr>
         <th>Opcode (ASM)</th>
