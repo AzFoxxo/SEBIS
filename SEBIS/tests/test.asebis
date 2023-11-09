@@ -7,7 +7,7 @@ LDB 1
 CMP
 JPZ leave_panic
 
-:halt
+:end
 
 :init
 NOP ; No(n) op
