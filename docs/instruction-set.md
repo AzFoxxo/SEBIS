@@ -141,7 +141,7 @@ Note: Some more complex instructions which both load data and operate on it will
         <td>L</td>
         <td>NULL</td>
         <td>Perform not equals instead</td>
-        <td>POINTER</td>
+        <td>REGISTER</td>
         <td>Compare if A and B are equal and store result in C</td>
     </tr>
     <!-- CPL -->
@@ -151,7 +151,7 @@ Note: Some more complex instructions which both load data and operate on it will
         <td>L</td>
         <td>NULL</td>
         <td>Perform more than instead</td>
-        <td>POINTER</td>
+        <td>REGISTER</td>
         <td>Compare if A is less than B and store result in C</td>
     </tr>
     <!-- AND -->
@@ -161,7 +161,7 @@ Note: Some more complex instructions which both load data and operate on it will
         <td>L</td>
         <td>NULL</td>
         <td>NULL</td>
-        <td>POINTER</td>
+        <td>REGISTER</td>
         <td>Performs a bitwise AND operation between the values in registers A and B and stores the result in the C register</td>
     </tr>
     <!-- XOR -->
@@ -171,7 +171,7 @@ Note: Some more complex instructions which both load data and operate on it will
         <td>L</td>
         <td>NULL</td>
         <td>NULL</td>
-        <td>POINTER</td>
+        <td>REGISTER</td>
         <td>Performs a bitwise XOR operation between the values in registers A and B and stores the result in the C register</td>
     </tr>
     <!-- OR -->
@@ -181,7 +181,7 @@ Note: Some more complex instructions which both load data and operate on it will
         <td>L</td>
         <td>NULL</td>
         <td>NULL</td>
-        <td>POINTER</td>
+        <td>REGISTER</td>
         <td>Performs a bitwise OR operation between the values in registers A and B and stores the result in the C register</td>
     </tr>
     <!-- HLT -->
