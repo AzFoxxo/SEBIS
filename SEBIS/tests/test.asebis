@@ -3,9 +3,9 @@
 
 :panic
 LDA 1
-LDB 1
+LDB 2
 CMP
-JPZ leave_panic
+JZ leave_panic
 
 :end
 
