@@ -235,7 +235,7 @@ namespace SEBIS.Assembler
             // Single opcode no operand instructions
             // Disregard any misplaced tokens after no operand instructions
             if (tokens[0].ToUpper() == "ABC") return new Instruction(Opcodes.ABC, false, false, "", OpcodeByteLength.Short, AddressMode.REGISTER);
-            if (tokens[0].ToUpper() == "SUB") return new Instruction(Opcodes.SUB, true, false, "", OpcodeByteLength.Short, AddressMode.REGISTER); // SUB flag
+            if (tokens[0].ToUpper() == "SUB") return new Instruction(Opcodes.ABC, true, false, "", OpcodeByteLength.Short, AddressMode.REGISTER); // SUB flag
             else if (tokens[0].ToUpper() == "HLT") return new Instruction(Opcodes.HLT, false, false, "", OpcodeByteLength.Long, AddressMode.NULL);
             else if (tokens[0].ToUpper() == "NOP") return new Instruction(Opcodes.NOP, false, false, "", OpcodeByteLength.Short, AddressMode.NULL);
             else if (tokens[0].ToUpper() == "MUL") return new Instruction(Opcodes.MUL, false, false, "", OpcodeByteLength.Long, AddressMode.REGISTER);
