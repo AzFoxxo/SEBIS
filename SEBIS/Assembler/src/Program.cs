@@ -327,7 +327,6 @@ namespace SEBIS.Assembler
             return 0;
         }
 
-
         private static byte ConvertOperandTextToConstantByte(string constant)
         {
             // Valid constant formats include:
@@ -390,7 +389,6 @@ namespace SEBIS.Assembler
                     {
                         instructions.Add(instruction);
                     }
-
                 }
                 else
                 {
@@ -613,7 +611,7 @@ namespace SEBIS.Assembler
                 Environment.Exit((int)ErrorCodes.MissingFile);
             }
 
-            // Check if file extension ends in .qkvt (lower case only)
+            // Check if file extension ends in .asebis (lower case only)
             if (!file.EndsWith(".asebis"))
             {
                 Console.WriteLine("Error: File extension must be .asebis");
