@@ -1,0 +1,74 @@
+; This is a simple test to allow for the assembler
+; It includes all instructions within the instruction set
+
+:panic
+LDA 1
+LDB 2
+CMP
+JZ leave_panic
+
+:end
+
+:init
+NOP ; No(n) op
+
+LDA 42
+LDB 2
+
+ABC
+
+; First 16K is reserved for RAM (protected)
+STA $3e81   ; First accessable address in RAM (non-protected)
+STB $3e82   ; First accessabel address in RAM (non-protected)
+STC $3e83
+
+; NULL syscall
+LDL 0
+LDH 0
+syscall
+
+LDA $3e82
+LDB $3e83
+MUL
+
+LDA $3e82
+LDB $3e83
+DIV
+
+LDA $3e82
+LDB $3e83
+DIV
+
+CMP
+CMP 1
+CPL 1
+CPL
+AND
+XOR
+OR
+PANIC   ; Enter panic
+
+:leave_panic
+MBNKROM ; Change to read only ROM bank for instructions
+MBNKRAM ; Change to RAM first seek for instructions
+
+; Reset all memory in RAM to zero (non-protected only)
+ZERO
+
+; Load back in current memory
+LDL 0
+LDH 0
+CLD
+
+LDA 0
+LDB 1
+CMP
+CMP 1
+CPL
+CMP 1
+JNZ leave_panic2
+JZ leave_panic2
+JMP end
+
+:leave_panic2
+HLT
