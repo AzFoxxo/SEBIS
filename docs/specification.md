@@ -2,10 +2,12 @@
 SEBIS is a lightweight 8 bit instruction 
 
 ### ROM file format specification
-The ROM format for SEBIS contains various sections and details can be found in [ROM Specification](romspecification.md).
+The ROM format for SEBIS contains various sections and details can be found in [ROM Specification](rom-specification.md).
 
 ### CPU
 The CPU is uses 16 bit memory addressing with a default instruction size of 8 bits operating at exactly 5MHz (single threaded only).
+
+The CPU contains 5 bytes of memory, these are used to store the current instruction being executed and memory operated on.
 
 ### Memory layout
 Both the ROM and RAM are 64K in size, the ROM cannot be written to but can be read from (slow) but the RAM can be both read and written to (fast).
