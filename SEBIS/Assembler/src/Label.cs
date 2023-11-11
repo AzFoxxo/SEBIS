@@ -23,10 +23,10 @@ namespace SEBIS.Assembler
 {
     struct Label
     {
-        public byte address;
+        public ushort address;
         public string name;
 
-        public Label(byte address, string name)
+        public Label(ushort address, string name)
         {
             this.address = address;
             this.name = name;

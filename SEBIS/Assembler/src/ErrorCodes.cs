@@ -29,6 +29,8 @@ namespace SEBIS.Assembler
         UnknownLabelName,
         InvalidOpcode,
         InvalidNumberOfArguments,
-        InvalidLongRegister
+        InvalidLongRegister,
+        MissingRequiredLabels,
+        RomFull
     }
 }

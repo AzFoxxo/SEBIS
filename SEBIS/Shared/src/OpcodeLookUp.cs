@@ -23,43 +23,42 @@ namespace SEBIS.Shared
 {
     public class OpcodeLookUp
     {
-        private Dictionary<Opcodes, uint> opcodes = new() {
+        public static Dictionary<Opcodes, byte[]> opcodesBinary = new Dictionary<Opcodes, byte[]>()
+        {
             // Short opcodes
-            { Opcodes.NOP, 0 },
-            { Opcodes.LDA, 1 },
-            { Opcodes.LDB, 2 },
-            { Opcodes.STA, 3 },
-            { Opcodes.STB, 4 },
-            { Opcodes.STC, 5 },
-            { Opcodes.SYSCALL, 6 },
-            { Opcodes.ABC, 7 },
+            { Opcodes.NOP, new byte [] {0, 0, 0} },
+            { Opcodes.LDA, new byte [] {1, 0, 0} },
+            { Opcodes.LDB, new byte [] {2, 0, 0} },
+            { Opcodes.STA, new byte [] {3, 0, 0} },
+            { Opcodes.STB, new byte [] {4, 0, 0} },
+            { Opcodes.STC, new byte [] {5, 0, 0} },
+            { Opcodes.SYSCALL, new byte [] {6, 0, 0} },
+            { Opcodes.ABC, new byte [] {7, 0, 0} },
             // Long opcodes
-            { Opcodes.MUL, 0},
-            { Opcodes.JMP, 1},
-            { Opcodes.JZ, 2},
-            { Opcodes.JNZ, 3},
-            { Opcodes.CMP, 4},
-            { Opcodes.CPL, 5},
-            { Opcodes.AND, 6},
-            { Opcodes.XOR, 7},
-            { Opcodes.OR, 8},
-            { Opcodes.HLT, 9},
-            { Opcodes.PANIC, 10},
-            { Opcodes.MBNKROM, 11},
-            { Opcodes.MBNKRAM, 12},
-            { Opcodes.ZERO, 13},
-            { Opcodes.LDL, 14},
-            { Opcodes.LDH, 15},
-            { Opcodes.CLD, 16},
+            { Opcodes.MUL, new byte [] {0, 0, 0} },
+            { Opcodes.JMP, new byte [] {0, 1, 0} },
+            { Opcodes.JZ, new byte [] {0, 2, 0} },
+            { Opcodes.JNZ, new byte [] {0, 3, 0} },
+            { Opcodes.CMP, new byte [] {0, 4, 0} },
+            { Opcodes.CPL, new byte [] {0, 5, 0} },
+            { Opcodes.AND, new byte [] {0, 6, 0} },
+            { Opcodes.XOR, new byte [] {0, 7, 0} },
+            { Opcodes.OR, new byte [] {0, 8, 0} },
+            { Opcodes.HLT, new byte [] {0, 9, 0} },
+            { Opcodes.PANIC, new byte [] {0, 10, 0} },
+            { Opcodes.MBNKROM, new byte [] {0, 11, 0} },
+            { Opcodes.MBNKRAM, new byte [] {0, 12, 0} },
+            { Opcodes.ZERO, new byte [] {0, 13, 0} },
+            { Opcodes.LDL, new byte [] {0, 14, 0} },
+            { Opcodes.LDH, new byte [] {0, 15, 0} },
+            { Opcodes.CLD, new byte [] {0, 16, 0} }
         };
 
         /// <summary>
-        /// Return the decimal value corresponding to an opcode.
-        /// Expect collisions and use VariableLengthOpcode and Length
-        /// to write how many bits need to be written.
+        /// Return the binary representation of an opcode in byte array form.
         /// </summary>
-        /// <param name="opcode"></param>
-        /// <returns>uint representation of the opcode</returns>
-        public uint this[Opcodes opcode] => opcodes[opcode];
+        /// <param name="opcode">Opcode</param>
+        /// <returns>Three byte byte array</returns>
+        public static byte[] GetOpcodeBinary(Opcodes opcode) => opcodesBinary[opcode];
     }
 }

@@ -21,6 +21,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Security.Cryptography;
 using SEBIS.Shared;
 
 namespace SEBIS.Assembler
@@ -75,6 +76,29 @@ namespace SEBIS.Assembler
             // Label parsing
             (labels, lines) = FindLabels(lines);
 
+            // Check if labels contains init label
+            // init label
+            if (!labels.Exists(label => label.name == "init"))
+            {
+                Console.WriteLine("Error: No init label found");
+                Environment.Exit((int)ErrorCodes.MissingRequiredLabels);
+                return;
+            }
+            // end label
+            if (!labels.Exists(label => label.name == "end"))
+            {
+                Console.WriteLine("Error: No end label found");
+                Environment.Exit((int)ErrorCodes.MissingRequiredLabels);
+                return;
+            }
+            // data label
+            if (!labels.Exists(label => label.name == "panic"))
+            {
+                Console.WriteLine("Error: No panic label found");
+                Environment.Exit((int)ErrorCodes.MissingRequiredLabels);
+                return;
+            }
+
             // Label resolution
             lines = LabelResolution(lines, labels);
 
@@ -100,24 +124,44 @@ namespace SEBIS.Assembler
         private static void WriteRom(string outputRom, List<Instruction> instructions, List<Label> labels)
         {
             // Header info
-            // Byte 1-4: `QKVT` in ASCII
-            // Byte 5-8: ROM format version
+            // Byte 1-6: `.SEBIS` in ASCII
+            // Byte 5-9: ROM format version
             // Byte 9: ROM size in bytes after the header
-            string magic = "QKVT";
+            string magic = ".SEBIS";
             byte versionMajor = 1;
             byte versionIntermediate = 0;
             byte versionMinor = 0;
             byte initAddressInRom = 0;
-            byte romSize = 0;
-
-            // Find the label for `init`'s corresponding address
-            initAddressInRom = labels.Find(label => label.name == "init").address;
+            uint romSize = 6; // Add 2 for each label in ROM (end, panic, init)
 
             // Calculate the rom size
             // Instructions are 1 byte with an optional extra byte for operands
             foreach (var instruction in instructions)
             {
-                romSize += (byte)(instruction.IncludeLongRegisterInROM ? 2 : 1);
+                // Short instructions are 1 byte
+                // Long instructions are 2 bytes
+                // Extra long instructions are 3 bytes
+                // Constant + 1 byte
+                // Address + 2 bytes
+
+                ushort sizeOfInstruction = 0;
+
+                // Base opcode size
+                if (instruction.opcodeLength == OpcodeByteLength.Short) sizeOfInstruction = 1;  // Short
+                if (instruction.opcodeLength == OpcodeByteLength.Long) sizeOfInstruction = 2;   // Long
+                if (instruction.opcodeLength == OpcodeByteLength.Extra) sizeOfInstruction = 3;  // Extra long
+
+                // Add long register value in size calculation
+                if (instruction.IncludeLongRegisterInROM)
+                {
+                    // Memory address
+                    if (instruction.addressMode == AddressMode.MEMORY) sizeOfInstruction += 2;
+
+                    // Constant
+                    if (instruction.addressMode == AddressMode.CONSTANT) sizeOfInstruction += 1;
+                }
+
+                romSize += sizeOfInstruction;
             }
 
             Console.WriteLine($"ROM instruction size: {romSize} bytes out of {byte.MaxValue} bytes supported");
@@ -133,59 +177,193 @@ namespace SEBIS.Assembler
                 writer.Write(versionMajor);
                 writer.Write(versionIntermediate);
                 writer.Write(versionMinor);
-                writer.Write(initAddressInRom);
                 writer.Write(romSize);
+
+                // Machine code to generate hash on
+                List<byte> machineCodeAll = new();
+
+                // Write address of `init`, `panic` and `end` sections
+                ushort m_init = labels.Find(label => label.name == "init").address;
+                ushort m_panic = labels.Find(label => label.name == "panic").address;
+                ushort m_end = labels.Find(label => label.name == "end").address;
+                // Write, log and add to all code (first and second byte of ushort)
+                writer.Write(m_init); Console.WriteLine($"ADDR {m_init}"); machineCodeAll.Add((byte)(m_init >> 8)); machineCodeAll.Add((byte)(m_init & 0xFF));
+                writer.Write(m_init); Console.WriteLine($"ADDR {m_panic}"); machineCodeAll.Add((byte)(m_panic >> 8)); machineCodeAll.Add((byte)(m_panic & 0xFF));
+                writer.Write(m_init); Console.WriteLine($"ADDR {m_end}"); machineCodeAll.Add((byte)(m_end >> 8)); machineCodeAll.Add((byte)(m_end & 0xFF));
 
                 // Write the instructions
                 foreach (var instruction in instructions)
                 {
-                    var flag = instruction.flagBitValue ? 0b1 : 0b0; // First bit of byte
-                    var IncludeLongRegisterInROM = instruction.IncludeLongRegisterInROM ? 0b1 : 0b0; // Second bit of byte
-                    var op = instruction.opcode.DecimalToShortOpcode(); // Last six bits of byte
+                    // Instruction variables to write
+                    byte instructionSize = (byte)instruction.opcodeLength; // First two bits - instruction size
+                    byte instructionFlag = (byte)(instruction.flagBitValue ? 1 : 0); // Second two bits - instruction flag
+                    byte addressMode = (byte)instruction.addressMode; // Second two bits - address mode
 
-                    // Combine flag, lng, and op into a single byte
-                    byte machineCode = (byte)((flag << 7) | (IncludeLongRegisterInROM << 6) | op);
+                    // Create a byte array of size three to represent 24 bits plus 16 bit of address or 8 bit constant
+                    byte[] machineCodeBytes = new byte[5] { 0x00, 0x00, 0x00, 0x00, 0x00 };
 
-                    // Write byte
-                    writer.Write(machineCode);
+                    // Add instructionSize
+                    machineCodeBytes[0] |= (byte)(instructionSize << 6);
 
-                    // Long register
-                    if (instruction.IncludeLongRegisterInROM)
+                    // Add instructionFlag
+                    machineCodeBytes[0] |= (byte)(instructionFlag << 5);
+
+                    // Add addressMode
+                    machineCodeBytes[0] |= (byte)(addressMode << 3);
+
+                    // Get the three bytes corresponding to each opcode
+                    byte[] opcodeBytes = OpcodeLookUp.GetOpcodeBinary(instruction.opcode);
+
+                    // Add the first byte opcode
+                    machineCodeBytes[0] |= opcodeBytes[0];
+                    machineCodeAll.Add(machineCodeBytes[0]);
+
+                    // Add second byte
+                    if (instruction.opcodeLength == OpcodeByteLength.Long || instruction.opcodeLength == OpcodeByteLength.Extra)
                     {
-                        // Remove $ - address from operand
-                        var operand = instruction.longRegisterValue.Replace("$", "");
-
-                        // Convert hex to byte
-                        if (Byte.TryParse(operand, System.Globalization.NumberStyles.HexNumber, null, out byte value) && instruction.longRegisterValue.Contains('$'))
-                        {
-                            Console.ForegroundColor = ConsoleColor.Blue;
-                            Console.WriteLine($"`{instruction.longRegisterValue}` to `{operand}` to `{Convert.ToByte(value)}`");
-                            Console.ResetColor();
-                        }
-                        // Convert decimal to byte
-                        else if (Byte.TryParse(operand, out value))
-                        {
-                            Console.ForegroundColor = ConsoleColor.Blue;
-                            Console.WriteLine($"`{instruction.longRegisterValue}` to `{operand}` to `{Convert.ToByte(value)}`");
-                            Console.ResetColor();
-                        }
-                        else
-                        {
-                            // Log error
-                            Console.WriteLine($"Error: Invalid long register {instruction.longRegisterValue}");
-                            Environment.Exit((int)ErrorCodes.InvalidLongRegister);
-                            return;
-                        }
-
-                        // Write the byte
-                        writer.Write(value);
+                        machineCodeBytes[1] |= opcodeBytes[1];
+                        machineCodeAll.Add(machineCodeBytes[1]);
                     }
+
+                    // Add third byte
+                    if (instruction.opcodeLength == OpcodeByteLength.Extra)
+                    {
+                        machineCodeBytes[2] |= opcodeBytes[2];
+                        machineCodeAll.Add(machineCodeBytes[2]);
+                    }
+
+                    // Add constant
+                    if (instruction.addressMode == AddressMode.CONSTANT)
+                    {
+                        machineCodeBytes[3] |= ConvertOperandTextToConstantByte(instruction.longRegisterValue);
+                        machineCodeAll.Add(machineCodeBytes[3]);
+                    }
+
+                    // Add memory address
+                    if (instruction.addressMode == AddressMode.MEMORY)
+                    {
+                        ushort address = ConvertOperandTextTo16BitAddress(instruction.longRegisterValue);
+                        machineCodeBytes[3] |= (byte)(address >> 8);
+                        machineCodeBytes[4] |= (byte)(address & 0xFF);
+                        machineCodeAll.Add(machineCodeBytes[3]);
+                        machineCodeAll.Add(machineCodeBytes[4]);
+                    }
+
+                    // Print bytes
+                    Console.Write("Binary: " + Convert.ToString(machineCodeBytes[0], 2).PadLeft(8, '0'));
+                    if (instruction.opcodeLength == OpcodeByteLength.Long || instruction.opcodeLength == OpcodeByteLength.Extra)
+                        Console.Write(" : " + Convert.ToString(machineCodeBytes[1], 2).PadLeft(8, '0'));
+                    if (instruction.opcodeLength == OpcodeByteLength.Extra)
+                        Console.Write(" : " + Convert.ToString(machineCodeBytes[2], 2).PadLeft(8, '0'));
+                    if (instruction.addressMode == AddressMode.CONSTANT)
+                        Console.Write($" WITH CONSTANT: `{Convert.ToString(machineCodeBytes[3], 2).PadLeft(8, '0')}`");
+                    if (instruction.addressMode == AddressMode.MEMORY)
+                    {
+                        Console.Write($" WITH MEMORY ADDRESS: `{Convert.ToString(machineCodeBytes[3], 2).PadLeft(8, '0')}");
+                        Console.Write($"-{Convert.ToString(machineCodeBytes[4], 2).PadLeft(8, '0')}`");
+                    }
+                    Console.WriteLine();
+
+                    // Write bytes
+                    if (instruction.opcodeLength == OpcodeByteLength.Short)
+                        writer.Write(machineCodeBytes[0]);
+                    if (instruction.opcodeLength == OpcodeByteLength.Long)
+                        writer.Write(machineCodeBytes[1]);
+                    if (instruction.opcodeLength == OpcodeByteLength.Extra)
+                        writer.Write(machineCodeBytes[2]);
+
+                    // Write data
+                    if (instruction.addressMode == AddressMode.CONSTANT || instruction.addressMode == AddressMode.MEMORY)
+                        writer.Write(machineCodeBytes[3]);
+                    if (instruction.addressMode == AddressMode.MEMORY)
+                        writer.Write(machineCodeBytes[4]);
                 }
 
-                // Write the end of file
-                writer.Write(System.Text.Encoding.ASCII.GetBytes(magic));
+                // How much ROM is used out of 64K
+                Console.WriteLine($"ROM used: {romSize} bytes out of 65,536 used!");
+
+                // Check if ROM is full
+                if (romSize > byte.MaxValue)
+                {
+                    Console.WriteLine("ROM is full!");
+                    Environment.Exit((int)ErrorCodes.RomFull);
+                    return;
+                }
+
+                // Generate an SHA256 and write it to the end of the file
+                using (SHA256 sha256Hash = SHA256.Create())
+                {
+                    byte[] hash = sha256Hash.ComputeHash(machineCodeAll.ToArray());
+
+                    // Print the hash
+                    Console.WriteLine("SHA256 of machine code: " + BitConverter.ToString(hash).Replace("-", ""));
+
+                    // Write the hash
+                    writer.Write(hash);
+                }
+            }
+        }
+
+        private static ushort ConvertOperandTextTo16BitAddress(string address)
+        {
+            // Valid address formats include:
+            // $ hex
+
+            // Convert $ to 0x
+            address = address.Replace("$", "0x");
+
+            // If word does not contain 0x, append at the start of the string
+            if (!address.StartsWith("0x")) address = "0x" + address;
+
+            // Try convert string (hexadecimal) to byte
+            if (address.StartsWith("0x") && ushort.TryParse(address.Substring(2), System.Globalization.NumberStyles.AllowHexSpecifier, null, out ushort memoryUshort))
+            {
+                return memoryUshort;
             }
 
+            // Log error
+            Console.WriteLine($"Invalid long register, cannot convert memory address: `{address}`");
+            Environment.Exit((int)ErrorCodes.InvalidLongRegister);
+            return 0;
+        }
+
+
+        private static byte ConvertOperandTextToConstantByte(string constant)
+        {
+            // Valid constant formats include:
+            // decimal
+            // binary (0b)
+            // hexadecimal (0x)
+            // octal (0)
+
+            // Try convert string (decimal) to byte
+            if (byte.TryParse(constant, out byte constantByte))
+            {
+                return constantByte;
+            }
+
+            // Try convert string (binary) to byte
+            if (constant.StartsWith("0b") && byte.TryParse(constant.Substring(2), System.Globalization.NumberStyles.AllowHexSpecifier, null, out constantByte))
+            {
+                return constantByte;
+            }
+
+            // Try convert string (hexadecimal) to byte
+            if (constant.StartsWith("0x") && byte.TryParse(constant.Substring(2), System.Globalization.NumberStyles.AllowHexSpecifier, null, out constantByte))
+            {
+                return constantByte;
+            }
+
+            // Try convert string (octal) to byte
+            if (constant.StartsWith("0") && byte.TryParse(constant.Substring(1), System.Globalization.NumberStyles.AllowHexSpecifier, null, out constantByte))
+            {
+                return constantByte;
+            }
+
+            // Log error
+            Console.WriteLine($"Invalid long register, cannot convert constant: `{constant}`");
+            Environment.Exit((int)ErrorCodes.InvalidLongRegister);
+            return 0;
         }
 
         private static List<Instruction> LineTokenisation(string[] lines)
@@ -194,7 +372,7 @@ namespace SEBIS.Assembler
 
             // Get enum name of Opcodes using reflection
             // SET is not a machine instruction so contains no definition in Opcodes so must be manually added
-            string[] enumNames = Enum.GetNames(typeof(Opcodes)).Concat(new[] { "SET" }).ToArray();
+            string[] enumNames = Enum.GetNames(typeof(Opcodes)).Concat(new[] { "DIV", "SUB" }).ToArray();
 
             // Loop through each line
             foreach (var line in lines)
@@ -270,7 +448,7 @@ namespace SEBIS.Assembler
                     break;
             }
 
-            
+
             // Comparison instructions
             switch (tokens[0].ToUpper())
             {
@@ -330,7 +508,6 @@ namespace SEBIS.Assembler
                     return new Instruction(op, false, true, tokens[1], OpcodeByteLength.Short, AddressMode.MEMORY);
             }
 
-            
             // Error
             Console.WriteLine("Error: Invalid opcode found");
             return new Instruction(Opcodes.NOP, false, false, "", OpcodeByteLength.Short, AddressMode.NULL);
