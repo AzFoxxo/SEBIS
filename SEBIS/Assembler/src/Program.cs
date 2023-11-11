@@ -464,6 +464,8 @@ namespace SEBIS.Assembler
             {
                 case "LDA":
                 case "LDB":
+                case "LDL":
+                case "LDH":
                     Opcodes op;
                     if (tokens[0].ToUpper() == "LDA") op = Opcodes.LDA;
                     else if (tokens[0].ToUpper() == "LDB") op = Opcodes.LDB;
