@@ -33,38 +33,39 @@ namespace SEBIS.VirtualMachine
         public ContiguousMemory(ushort size)
         {
             // Create pool of memory
-            byte* memory = stackalloc byte[size];
+            memory = (byte*)System.Runtime.InteropServices.NativeMemory.Alloc(size);
 
             // Set all values in memory to zero
-            for (int i = 0; i < size; i++)
-                memory[i] = 0;
+            for (ushort i = 0; i < size; i++)
+                ReadUnsafe(0);
         }
 
         // Finaliser
         ~ContiguousMemory()
         {
             // Free memory
-            System.Runtime.InteropServices.Marshal.FreeHGlobal((IntPtr)memory);
+            System.Runtime.InteropServices.NativeMemory.Free(memory);
         }
 
+
         /// <summary>
-        /// Write a byte to memory without bounds checking
+        /// Write byte to memory chunk without bounds checking.
         /// </summary>
-        /// <param name="address">address (index) to write to</param>
-        /// <param name="value">Byte to write</param>
+        /// <param name="address">Address to read (offset)</param>
+        /// <returns></returns>
         public void WriteUnsafe(ushort address, byte value)
         {
-            memory[address] = value;
+            *(memory + address) = value;
         }
         
         /// <summary>
-        /// Read a byte from memory without bounds checking
+        /// Read byte from memory chunk without bounds checking.
         /// </summary>
-        /// <param name="address">address (index) to read</param>
-        /// <returns>Byte value</returns>
+        /// <param name="address">Address to read (offset)</param>
+        /// <returns>Byte retrieved</returns>
         public byte ReadUnsafe(ushort address)
         {
-            return memory[address];
+            return *(memory + address);
         }
     }
 }

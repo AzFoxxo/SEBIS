@@ -61,10 +61,10 @@ namespace SEBIS.VirtualMachine
             );
 
             // Load ROM
-            LoadROM(ROM, args[0]);
+            LoadROM(ROM, RAM, args[0]);
         }
 
-        private static void LoadROM(Memory ROM, string filename)
+        private static void LoadROM(Memory ROM, Memory RAM, string filename)
         {
             // Get file size in bytes
             long fileSize = new FileInfo(filename).Length;
@@ -96,9 +96,52 @@ namespace SEBIS.VirtualMachine
                 byte[] version = reader.ReadBytes(3);
                 Console.WriteLine($"File format version: {version[0]}.{version[1]}.{version[2]}");
 
-                // Read two bytes for filesize (ushort)
-                ushort fileSizeUshort = reader.ReadUInt16();
-                Console.WriteLine($"File size: {fileSizeUshort} bytes");
+                // Read two bytes for rom size (ushort)
+                ushort romSize = reader.ReadUInt16();
+                Console.WriteLine($"ROM size: {romSize} bytes");
+
+                // Bounds check - ROM
+                if (fileSize < romSize + 11)
+                {
+                    Console.WriteLine($"Error: File '{filename}' is too small to contain the specified ROM size");
+                    return;
+                }
+
+                // Read ROM data
+                byte[] romData = reader.ReadBytes(romSize);
+
+                // TODO: checksum
+
+                // Load ROM data into ROM
+                for (ushort i = 0; i < romSize; i++)
+                {
+                    ROM.WriteExecution(i, romData[i]);
+
+                    // Log binary data (convert byte to 1-0)
+                    Console.Write(Convert.ToString(romData[i], 2).PadLeft(8, '0'));
+                }
+                Console.WriteLine();
+                Console.WriteLine($"Loaded {romSize} bytes of ROM data into ROM");
+
+                // Copy first 16K of ROM to RAM
+                for (ushort i = 0; i < ushort.MaxValue/4; i++)
+                {
+                    (bool, byte) w = ROM.Read(i);
+
+                    RAM.WriteExecution(i, w.Item2);
+                }
+
+                // Print labels
+                for (ushort i = 0; i < 6; i++)
+                {
+                    (bool, byte) w = RAM.ReadExecution(i);i++;
+                    (bool, byte) z = RAM.ReadExecution(i);
+                    
+                    // Turn byte array to ushort
+                    var _bytes = new[] { w.Item2, z.Item2 };
+                    ushort _value = BitConverter.ToUInt16(_bytes, 0);
+                    Console.WriteLine($"Section[{i/2}]: {_value}");
+                }
             }
         }
     }
