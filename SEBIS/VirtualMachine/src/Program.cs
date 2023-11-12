@@ -59,6 +59,47 @@ namespace SEBIS.VirtualMachine
                     new MemoryProtections(0, ushort.MaxValue, false, true, false), // Disable write
                 }
             );
+
+            // Load ROM
+            LoadROM(ROM, args[0]);
+        }
+
+        private static void LoadROM(Memory ROM, string filename)
+        {
+            // Get file size in bytes
+            long fileSize = new FileInfo(filename).Length;
+
+            // Check file size is big enough to contain header
+            if (fileSize < 11)
+            {
+                Console.WriteLine($"Error: File '{filename}' is too small to contain a header");
+                return;
+            }
+
+            // Open ROM file with binary reader
+            using (BinaryReader reader = new BinaryReader(File.OpenRead(filename)))
+            {
+                // Read header
+                byte[] magic = reader.ReadBytes(6);
+
+                // Convert byte array to string
+                string magicString = System.Text.Encoding.ASCII.GetString(magic);
+
+                // Check if magic is .SEBIS
+                if (magicString != ".SEBIS")
+                {
+                    Console.WriteLine($"Error: File '{filename}' is not a valid .SEBIS file");
+                    return;
+                }
+
+                // Read three bytes for version major, intermediate and minor
+                byte[] version = reader.ReadBytes(3);
+                Console.WriteLine($"File format version: {version[0]}.{version[1]}.{version[2]}");
+
+                // Read two bytes for filesize (ushort)
+                ushort fileSizeUshort = reader.ReadUInt16();
+                Console.WriteLine($"File size: {fileSizeUshort} bytes");
+            }
         }
     }
 }
