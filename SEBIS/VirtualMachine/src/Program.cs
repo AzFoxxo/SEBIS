@@ -41,6 +41,24 @@ namespace SEBIS.VirtualMachine
 
             // Create the CPU
             CPU cpu = new CPU();
+
+            // Create the RAM
+            Memory RAM = new Memory(
+                ushort.MaxValue,
+                new MemoryProtections[] {
+                    new MemoryProtections(0, ushort.MaxValue/4, true, true, false), // Disable ROM section in RAM from general read/write
+                    new MemoryProtections(ushort.MaxValue/4+1, ushort.MaxValue-1001, false, false, true), // Disable RAM section for execution
+                    new MemoryProtections(ushort.MaxValue-1000, ushort.MaxValue, false, false, true)  // Disable IO section for execution
+                }
+            );
+
+            // Create the ROM
+            Memory ROM = new Memory(
+                ushort.MaxValue,
+                new MemoryProtections[] {
+                    new MemoryProtections(0, ushort.MaxValue, false, true, false), // Disable write
+                }
+            );
         }
     }
 }
