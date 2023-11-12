@@ -1,4 +1,4 @@
-﻿/*
+/*
  Copyright (c) 2023 Az Foxxo
 
  Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -21,26 +21,30 @@
 
 namespace SEBIS.VirtualMachine
 {
-    public class Program
+    public class CPU
     {
-        public static void Main(string[] args)
+        public Register A, B, C, L, H, M;   // 8 byte registers
+        public DoubleRegister PC, LRAP; // 16 byte registers
+
+        public CPU()
         {
-            // Check one argument is provided
-            if (args.Length != 1)
-            {
-                Console.WriteLine("Usage: virtualmachine <ROM>");
-                return;
-            }
+            // Create the registers
 
-            // Check the file exists
-            if (!File.Exists(args[0]))
-            {
-                Console.WriteLine($"File '{args[0]}' does not exist");
-                return;
-            }
+            // General purpose registers
+            A = new Register(true, true);
+            B = new Register(true, true);
+            C = new Register(true, false);
 
-            // Create the CPU
-            CPU cpu = new CPU();
+            // High and low registers (double registers but need to be addressed as singular so low and high)
+            L = new Register(false, true);
+            H = new Register(false, true);
+
+            // Special registers
+            M = new Register(false, true);
+
+            // Double registers
+            PC = new DoubleRegister(false, false);
+            LRAP = new DoubleRegister(false, false);
         }
     }
 }
