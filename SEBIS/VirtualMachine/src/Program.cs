@@ -62,6 +62,9 @@ namespace SEBIS.VirtualMachine
 
             // Load ROM
             LoadROM(ROM, RAM, args[0]);
+
+            // Initialise CPU
+            cpu.Entry(RAM, ROM);
         }
 
         private static void LoadROM(Memory ROM, Memory RAM, string filename)
