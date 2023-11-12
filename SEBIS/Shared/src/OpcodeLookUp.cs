@@ -60,5 +60,23 @@ namespace SEBIS.Shared
         /// <param name="opcode">Opcode</param>
         /// <returns>Three byte byte array</returns>
         public static byte[] GetOpcodeBinary(Opcodes opcode) => opcodesBinary[opcode];
+
+
+        // Use three byte byte array to get key
+        public static Opcodes GetOpcodeFromBinary(byte[] opcode)
+        {
+            Console.WriteLine($"Values {opcode[0]}, {opcode[1]}, {opcode[2]}");
+
+            Opcodes op = Opcodes.NOP;
+            foreach (KeyValuePair<Opcodes, byte[]> entry in opcodesBinary)
+            {
+                if (entry.Value.SequenceEqual(opcode))
+                {
+                    op = entry.Key;
+                    break;
+                }
+            }
+            return op;
+        } 
     }
 }
